@@ -34,6 +34,7 @@ import org.apache.sentry.binding.hive.conf.HiveAuthzConf;
 
 import com.google.common.base.Joiner;
 
+// 在`SessionManager.executeSessionHooks`方法中加载设置的Sentry类`HiveAuthzBindingSessionHook`并执行`run`
 public class HiveAuthzBindingSessionHook
     implements org.apache.hive.service.cli.session.HiveSessionHook {
 
@@ -75,13 +76,16 @@ public class HiveAuthzBindingSessionHook
       return new SentryHiveAuthorizerImpl(null, null);    }
   }
 
+  // 跟HiveAuthorizerImpl基本一样
   public static class SentryHiveAuthorizerImpl extends HiveAuthorizerImpl {
 
     public SentryHiveAuthorizerImpl(HiveAccessController accessController,
         HiveAuthorizationValidator authValidator) {
+      // 两个都是null
       super(accessController, authValidator);
     }
 
+    // 因为accessController这个变量是null，父类中又调用了这个对象的方法，所以这里要重写
     @Override
     public void applyAuthorizationConfigPolicy(HiveConf conf) {
       return;
@@ -102,6 +106,7 @@ public class HiveAuthzBindingSessionHook
     // Add sentry hooks to the session configuration
     HiveConf sessionConf = sessionHookContext.getSessionConf();
 
+    // 在HiveConf中设置了Semantic Analyzer Hook，在Hive的Driver.compile方法中通过调用getHooks方法加载HiveAuthzBindingHook
     appendConfVar(sessionConf, ConfVars.SEMANTIC_ANALYZER_HOOK.varname,
         SEMANTIC_HOOK);
     sessionConf.setVar(ConfVars.HIVE_SECURITY_COMMAND_WHITELIST, "set");
@@ -111,6 +116,7 @@ public class HiveAuthzBindingSessionHook
     // set user name
     sessionConf.set(HiveAuthzConf.HIVE_ACCESS_SUBJECT_NAME, sessionHookContext.getSessionUser());
     sessionConf.set(HiveAuthzConf.HIVE_SENTRY_SUBJECT_NAME, sessionHookContext.getSessionUser());
+    // 这里设置了hive.security.authorization.manager
     sessionConf.setVar(ConfVars.HIVE_AUTHORIZATION_MANAGER,
             "org.apache.sentry.binding.hive.HiveAuthzBindingSessionHook$SentryHiveAuthorizerFactory");
 

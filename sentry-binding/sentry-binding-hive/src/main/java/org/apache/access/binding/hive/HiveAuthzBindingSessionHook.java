@@ -21,6 +21,7 @@ import org.apache.hive.service.cli.session.HiveSessionHookContext;
 
 /**
  * The session hook wrapper for backward compatibility
+ * 为了兼容性，封装org.apache.sentry.binding.hive.HiveAuthzBindingSessionHook
  */
 public class HiveAuthzBindingSessionHook
     implements org.apache.hive.service.cli.session.HiveSessionHook {

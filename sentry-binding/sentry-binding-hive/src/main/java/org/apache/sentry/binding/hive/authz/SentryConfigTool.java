@@ -65,6 +65,7 @@ import java.sql.Statement;
 import java.util.HashSet;
 import java.util.Set;
 
+// 给文件最后的CommandImpl静态类使用
 public class SentryConfigTool {
   private String sentrySiteFile = null;
   private String policyFile = null;

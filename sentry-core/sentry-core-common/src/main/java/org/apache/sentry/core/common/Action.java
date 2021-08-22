@@ -16,6 +16,7 @@
 */
 package org.apache.sentry.core.common;
 
+// 被DBModelAction、IndexerModelAction等枚举类实现
 public interface Action {
   public static final String ALL = "*";
   public String getValue();

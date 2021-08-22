@@ -54,6 +54,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 
+// 被HiveAuthzBindingHook、MetastoreAuthzBinding等类使用
 public class HiveAuthzBinding {
   private static final Logger LOG = LoggerFactory
       .getLogger(HiveAuthzBinding.class);

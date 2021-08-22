@@ -18,6 +18,7 @@
 package org.apache.sentry;
 
 
+// 被有些类的内部静态类CommandImpl实现，作为sentry命令的子命令
 public interface Command {
   public void run(String[] args) throws Exception;
 }

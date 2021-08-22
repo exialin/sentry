@@ -1,18 +1,18 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * licensed to the apache software foundation (asf) under one or more
+ * contributor license agreements.  see the notice file distributed with
  * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * the asf licenses this file to you under the apache license, version 2.0
+ * (the "license"); you may not use this file except in compliance with
+ * the license.  you may obtain a copy of the license at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/license-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * unless required by applicable law or agreed to in writing, software
+ * distributed under the license is distributed on an "as is" basis,
+ * without warranties or conditions of any kind, either express or implied.
+ * see the license for the specific language governing permissions and
+ * limitations under the license.
  */
 package org.apache.sentry.binding.hive;
 
@@ -69,6 +69,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 
+// 在HiveAuthzBindingSessionHook中作为配置项被加载
 public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
   private static final Logger LOG = LoggerFactory
       .getLogger(HiveAuthzBindingHook.class);
@@ -82,11 +83,13 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
   private Database currOutDB = null;
 
   public HiveAuthzBindingHook() throws Exception {
+    // get是SessionState的静态方法，返回一个线程本地的SessionState实例
     SessionState session = SessionState.get();
     if(session == null) {
       throw new IllegalStateException("Session has not been started");
     }
     // HACK: set a random classname to force the Auth V2 in Hive
+    // 见Hive的SessionState.getAuthorizationMode方法，如果authorizer变量为null，则使用authorizerV2
     SessionState.get().setAuthorizer(null);
 
     HiveConf hiveConf = session.getConf();
@@ -94,6 +97,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
       throw new IllegalStateException("Session HiveConf is null");
     }
     authzConf = loadAuthzConf(hiveConf);
+    // 这里初始化了HiveAuthzBinding实例
     hiveAuthzBinding = new HiveAuthzBinding(hiveConf, authzConf);
   }
 
@@ -102,6 +106,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
     HiveAuthzConf newAuthzConf = null;
     String hiveAuthzConf = hiveConf.get(HiveAuthzConf.HIVE_SENTRY_CONF_URL);
     if(hiveAuthzConf == null || (hiveAuthzConf = hiveAuthzConf.trim()).isEmpty()) {
+      // 如果没有设置hive.sentry.conf.url，就用已经弃用的配置
       hiveAuthzConf = hiveConf.get(HiveAuthzConf.HIVE_ACCESS_CONF_URL);
       depreicatedConfigFile = true;
     }
@@ -135,6 +140,8 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
   public ASTNode preAnalyze(HiveSemanticAnalyzerHookContext context, ASTNode ast)
       throws SemanticException {
 
+    // 有些库、表信息不会保存在SemanticAnalyzer对象的inputs/outputs中
+    // 这里提取的currDB、currTab等信息会在authorizeWithHiveBindings方法中被用到
     switch (ast.getToken().getType()) {
     // Hive parser doesn't capture the database name in output entity, so we store it here for now
       case HiveParser.TOK_CREATEDATABASE:
@@ -176,6 +183,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
         int children = ast.getChildCount();
         for (int i = 1; i < children; i++) {
           ASTNode child = (ASTNode) ast.getChild(i);
+          // HiveParser.Identifier在Hive的HiveLexer.g中定义
           if (child.getToken().getType() == HiveParser.Identifier) {
             currDB = new Database(child.getText());
             break;
@@ -244,6 +252,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
         currDB = new Database(dbName);
         break;
       default:
+        // SELECT语句是这里？
         currDB = getCanonicalDb();
         break;
     }
@@ -312,14 +321,16 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
     HiveOperation stmtOperation = getCurrentHiveStmtOp();
     HiveAuthzPrivileges stmtAuthObject;
 
+    // 得到这个类型语句所需的权限
     stmtAuthObject = HiveAuthzPrivilegesMap.getHiveAuthzPrivileges(stmtOperation);
 
     // must occur above the null check on stmtAuthObject
     // since GRANT/REVOKE/etc are not authorized by binding layer at present
-    Subject subject = getCurrentSubject(context);
+    Subject subject = getCurrentSubject(context);// 得到用户名
     Set<String> subjectGroups = hiveAuthzBinding.getGroups(subject);
     for (Task<? extends Serializable> task : rootTasks) {
       if (task instanceof SentryGrantRevokeTask) {
+        // 设置SentryGrantRevokeTask中的字段
         SentryGrantRevokeTask sentryTask = (SentryGrantRevokeTask)task;
         sentryTask.setHiveAuthzBinding(hiveAuthzBinding);
         sentryTask.setAuthzConf(authzConf);
@@ -329,10 +340,12 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
         sentryTask.setOperation(stmtOperation);
       }
     }
+    // rootTasks并不会在下面鉴权过程中用到？
 
     try {
       if (stmtAuthObject == null) {
         // We don't handle authorizing this statement
+        // HiveAuthzPrivilegesMap中有些类型的操作没有设置对应的权限，例如GRANT_PRIVILEGE
         return;
       }
       authorizeWithHiveBindings(context, stmtAuthObject, stmtOperation);
@@ -367,6 +380,8 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
         HiveAuthzConf.AuthzConfVars.AUTHZ_ONFAILURE_HOOKS.getVar(), "").trim();
 
     try {
+      // 除了测试类DummySentryOnFailureHook，没有其他实现SentryOnFailureHook接口的类
+      // 所以应是用户自己实现的类，通过sentry.hive.failure.hooks进行配置
       for (Hook aofh : getHooks(csHooks)) {
         ((SentryOnFailureHook)aofh).run(hookCtx);
       }
@@ -375,6 +390,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
     }
   }
 
+  // 被SentryGrantRevokeTask调用
   public static void runFailureHook(SentryOnFailureHookContext hookContext,
       String csHooks) {
     try {
@@ -385,6 +401,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
       LOG.error("Error executing hook:", ex);
     }
   }
+  // 这里进行权限的检查，被postAnalyze调用
   /**
    * Convert the input/output entities into authorizables. generate
    * authorizables for cases like Database and metadata operations where the
@@ -398,6 +415,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
    */
   private void authorizeWithHiveBindings(HiveSemanticAnalyzerHookContext context,
       HiveAuthzPrivileges stmtAuthObject, HiveOperation stmtOperation) throws  AuthorizationException {
+    // 需要检查权限的对象保存在inputs和outputs
     Set<ReadEntity> inputs = context.getInputs();
     Set<WriteEntity> outputs = context.getOutputs();
     List<List<DBModelAuthorizable>> inputHierarchy = new ArrayList<List<DBModelAuthorizable>>();
@@ -445,6 +463,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
       }
       // workaround for metadata queries.
       // Capture the table name in pre-analyze and include that in the input entity list
+      // currDB、currTab是在preAnalyze中设置的
       if (currTab != null) {
         List<DBModelAuthorizable> externalAuthorizableHierarchy = new ArrayList<DBModelAuthorizable>();
         externalAuthorizableHierarchy.add(hiveAuthzBinding.getAuthServer());
@@ -465,7 +484,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
       break;
     case FUNCTION:
       /* The 'FUNCTION' privilege scope currently used for
-       *  - CREATE TEMP FUNCTION
+       *  - CREATE TEMP FUNCTIOidea%20maven%20home%20directoryN
        *  - DROP TEMP FUNCTION.
        */
       if (udfURI != null) {
@@ -534,6 +553,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
     throw new AuthorizationException("The UDF " + queryUDF + " is not found in the list of allowed UDFs");
   }
 
+  // 返回SQL语句的类型
   private HiveOperation getCurrentHiveStmtOp() {
     SessionState sessState = SessionState.get();
     if (sessState == null) {
@@ -549,6 +569,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
   }
 
   // Build the hierarchy of authorizable object for the given entity type.
+  // 这里添加SQL语句中涉及的表名等
   private List<DBModelAuthorizable> getAuthzHierarchyFromEntity(Entity entity) {
     List<DBModelAuthorizable> objectHierarchy = new ArrayList<DBModelAuthorizable>();
     switch (entity.getType()) {
@@ -591,11 +612,12 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
       ReadEntity entity) {
     List<DBModelAuthorizable> entityHierarchy = new ArrayList<DBModelAuthorizable>();
     entityHierarchy.add(hiveAuthzBinding.getAuthServer());
+    // 添加DB和Table
     entityHierarchy.addAll(getAuthzHierarchyFromEntity(entity));
 
     switch (entity.getType()) {
     case TABLE:
-    case PARTITION:
+    case PARTITIONschema-validator:
       List<String> cols = entity.getAccessedColumns();
       for (String col : cols) {
         List<DBModelAuthorizable> colHierarchy = new ArrayList<DBModelAuthorizable>(entityHierarchy);
@@ -610,6 +632,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
 
   /**
    * Get Authorizable from inputs and put into inputHierarchy
+   * 被authorizeWithHiveBindings调用
    *
    * @param inputHierarchy
    * @param entity
@@ -623,6 +646,7 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
         continue;
       }
       if (readEntity.getAccessedColumns() != null && !readEntity.getAccessedColumns().isEmpty()) {
+        // SQL中指定了某些列
         addColumnHierarchy(inputHierarchy, readEntity);
       } else {
         List<DBModelAuthorizable> entityHierarchy = new ArrayList<DBModelAuthorizable>();
@@ -696,8 +720,10 @@ public class HiveAuthzBindingHook extends AbstractSemanticAnalyzerHook {
       try {
         hiveAuthzBinding.authorize(operation, tableMetaDataPrivilege, subject,
             inputHierarchy, outputHierarchy);
+        // 通过检查的表放入filteredResult
         filteredResult.add(table.getName());
       } catch (AuthorizationException e) {
+        // 没有权限的表直接不显示，不需要抛出异常
         // squash the exception, user doesn't have privileges, so the table is
         // not added to
         // filtered list.
@@ -778,6 +804,7 @@ hiveAuthzBinding.getAuthzConf().get(
           return false;
         }
       }
+      // 表的祖先是View，不是Table，返回true
       return true;
     } else {
       return false;

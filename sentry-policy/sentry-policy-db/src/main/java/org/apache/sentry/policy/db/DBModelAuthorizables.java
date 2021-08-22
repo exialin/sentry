@@ -26,6 +26,7 @@ import org.apache.sentry.core.model.db.Table;
 import org.apache.sentry.core.model.db.View;
 import org.apache.sentry.provider.file.KeyValue;
 
+// 工具类，提供静态方法根据字符串生成DBModelAuthorizable的各个实现类
 public class DBModelAuthorizables {
 
   public static DBModelAuthorizable from(KeyValue keyValue) {

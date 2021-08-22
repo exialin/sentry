@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableSet;
 public class ActiveRoleSet {
   public static final ActiveRoleSet ALL = new ActiveRoleSet(true);
   private final boolean allRoles;
-  private final ImmutableSet<String> roles;
+  private final ImmutableSet<String> roles;   // 保存角色集合
 
   public ActiveRoleSet(boolean allRoles) {
     this(allRoles, new HashSet<String>());

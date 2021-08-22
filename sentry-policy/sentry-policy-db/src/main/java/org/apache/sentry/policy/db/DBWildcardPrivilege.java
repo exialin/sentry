@@ -43,6 +43,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 // XXX this class is made ugly by the fact that Action is not a Authorizable.
+// 见AbstractDBPrivilegeValidator，Action对应'*'权限，需要特殊处理
 public class DBWildcardPrivilege implements Privilege {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(DBWildcardPrivilege.class);
@@ -161,6 +162,7 @@ public class DBWildcardPrivilege implements Privilege {
     return parts.hashCode();
   }
 
+  // 内部静态类，是一个工厂类，返回DBWildcardPrivilege对象
   public static class DBWildcardPrivilegeFactory implements PrivilegeFactory {
     @Override
     public Privilege createPrivilege(String privilege) {

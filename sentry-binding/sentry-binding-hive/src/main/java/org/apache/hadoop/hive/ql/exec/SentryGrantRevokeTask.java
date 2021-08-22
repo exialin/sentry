@@ -88,6 +88,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
+// 继承了org.apache.hadoop.hive.ql.exec.Task抽象类
 public class SentryGrantRevokeTask extends Task<DDLWork> implements Serializable {
   private static final Logger LOG = LoggerFactory
       .getLogger(SentryGrantRevokeTask.class);
@@ -129,6 +130,7 @@ public class SentryGrantRevokeTask extends Task<DDLWork> implements Serializable
       server = Preconditions.checkNotNull(authzConf.get(AuthzConfVars.AUTHZ_SERVER_NAME.getVar()),
           "Config " + AuthzConfVars.AUTHZ_SERVER_NAME.getVar() + " is required");
       try {
+        // work是Task<DDLWork>的成员，这里是DDLWork
         if (work.getRoleDDLDesc() != null) {
           return processRoleDDL(conf, console, sentryClient, subject.getName(),
               hiveAuthzBinding, work.getRoleDDLDesc());
@@ -149,6 +151,7 @@ public class SentryGrantRevokeTask extends Task<DDLWork> implements Serializable
           return processGrantRevokeRoleDDL(conf, console, sentryClient,
               subject.getName(), work.getGrantRevokeRoleDDL());
         }
+        // 除了上面的5种情况，其他类型的DDL语句不应该到这里
         throw new AssertionError(
             "Unknown command passed to Sentry Grant/Revoke Task");
       } catch (SentryAccessDeniedException e) {
@@ -185,6 +188,7 @@ public class SentryGrantRevokeTask extends Task<DDLWork> implements Serializable
     }
   }
 
+  // 下面的public方法在HiveAuthzBinding.postAnalyze中被调用
   public void setAuthzConf(HiveAuthzConf authzConf) {
     Preconditions.checkState(this.authzConf == null,
         "setAuthzConf should only be called once: " + this.authzConf);
@@ -222,6 +226,8 @@ public class SentryGrantRevokeTask extends Task<DDLWork> implements Serializable
     DataOutputStream outStream = null;
     String name = desc.getName();
     try {
+      // DDL语句可能需要改变Sentry和HiveAuthzBinding对象的状态，例如SET ROLE命令，要从Sentry读取当前用户的角色列表，
+      // 并将HiveAuthzBinding对象的字段设置为指定的角色
       if (operation.equals(RoleDDLDesc.RoleOperation.SET_ROLE)) {
         hiveAuthzBinding.setActiveRoleSet(name, sentryClient.listUserRoles(subject));
         return RETURN_CODE_SUCCESS;
@@ -405,6 +411,7 @@ public class SentryGrantRevokeTask extends Task<DDLWork> implements Serializable
       Set<String> groups = Sets.newHashSet();
       for (PrincipalDesc principal : principals) {
         if (principal.getType() != PrincipalType.GROUP) {
+          // Sentry只能Grant/Revoke权限到Group
           String msg = SentryHiveConstants.GRANT_REVOKE_NOT_SUPPORTED_FOR_PRINCIPAL +
               principal.getType();
           throw new HiveException(msg);

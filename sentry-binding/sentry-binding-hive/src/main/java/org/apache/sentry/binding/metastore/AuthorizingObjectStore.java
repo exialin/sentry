@@ -60,6 +60,7 @@ import com.google.common.collect.Sets;
  * If there is a request for the object list(like getAllTables()), the result
  * will be filtered to exclude object the requestor doesn't have privilege to
  * access.
+ * Hive的ObjectStore相关配置设置成这个类
  */
 public class AuthorizingObjectStore extends ObjectStore {
   private static ImmutableSet<String> serviceUsers;

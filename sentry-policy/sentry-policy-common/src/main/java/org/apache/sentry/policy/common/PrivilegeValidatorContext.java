@@ -18,6 +18,7 @@ package org.apache.sentry.policy.common;
 
 import javax.annotation.Nullable;
 
+// 保存验证权限时需要的上下文信息，即数据库名和权限
 public class PrivilegeValidatorContext {
   private final String database;
   private final String privilege;

@@ -29,6 +29,7 @@ import org.apache.sentry.core.model.db.AccessURI;
 import org.apache.sentry.core.model.db.Database;
 import org.apache.sentry.core.model.db.Table;
 
+// 在HiveAuthzBindingHook.executeOnFailureHooks中被使用
 public class SentryOnFailureHookContextImpl implements SentryOnFailureHookContext {
 
   private final String command;

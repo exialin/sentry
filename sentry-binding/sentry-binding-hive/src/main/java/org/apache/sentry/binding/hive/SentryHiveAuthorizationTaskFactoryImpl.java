@@ -57,6 +57,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
+// HiveAuthorizationTaskFactory是Hive的接口，在处理DDL语句授权时生成相应的Task
+// 这个类作为Hive的Hook在DDLSemanticAnalyzer.createAuthorizationTaskFactory中被调用
+// Hive有一个自己实现的HiveAuthorizationTaskFactoryImpl，这里的实现跟它类似
 public class SentryHiveAuthorizationTaskFactoryImpl implements HiveAuthorizationTaskFactory {
 
   private static final Logger LOG = LoggerFactory.getLogger(SentryHiveAuthorizationTaskFactoryImpl.class);
@@ -65,6 +68,8 @@ public class SentryHiveAuthorizationTaskFactoryImpl implements HiveAuthorization
 
   }
 
+  // 下面的createXXX方法在DDLSemanticAnalyzer的analyzeXXX方法中被调用
+  // 这里只涉及Role、Grant、Revoke命令，没有重写CREATE DATABASE、CREATE INDEX等语句对应的方法
   @Override
   public Task<? extends Serializable> createCreateRoleTask(ASTNode ast, HashSet<ReadEntity> inputs,
       HashSet<WriteEntity> outputs) throws SemanticException {
@@ -373,6 +378,7 @@ public class SentryHiveAuthorizationTaskFactoryImpl implements HiveAuthorization
     return ret;
   }
 
+  // 生成SentryGrantRevokeTask
   private static Task<? extends Serializable> createTask(DDLWork work) {
     SentryGrantRevokeTask task = new SentryGrantRevokeTask();
     task.setId("Stage-" + Integer.toString(TaskFactory.getAndIncrementId()));

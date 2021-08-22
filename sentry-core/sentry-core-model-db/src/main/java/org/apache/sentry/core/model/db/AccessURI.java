@@ -64,6 +64,7 @@ public class AccessURI implements DBModelAuthorizable {
 
   @Override
   public String getTypeName() {
+    // 返回枚举变量的名称
     return getAuthzType().name();
   }
 }

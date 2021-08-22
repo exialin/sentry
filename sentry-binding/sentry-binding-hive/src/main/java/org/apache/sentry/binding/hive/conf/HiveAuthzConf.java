@@ -167,6 +167,7 @@ public class HiveAuthzConf extends Configuration {
   private void applySystemProperties() {
     Map<String, String> systemProperties = getConfSystemProperties();
     for (Entry<String, String> systemProperty : systemProperties.entrySet()) {
+      // set是Configuration的方法
       this.set(systemProperty.getKey(), systemProperty.getValue());
     }
   }

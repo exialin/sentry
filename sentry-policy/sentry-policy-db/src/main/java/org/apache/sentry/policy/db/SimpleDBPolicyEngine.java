@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
+// HiveAuthzBinding.getAuthProvider中，根据AUTHZ_POLICY_ENGINE设置的PolicyEngine实现类，构造一个对象
 public class SimpleDBPolicyEngine implements PolicyEngine {
 
   private static final Logger LOGGER = LoggerFactory
@@ -40,6 +41,7 @@ public class SimpleDBPolicyEngine implements PolicyEngine {
 
   public final static String ACCESS_ALLOW_URI_PER_DB_POLICYFILE = "sentry.allow.uri.db.policyfile";
 
+  // Provider从后台数据库中获取权限信息
   private final ProviderBackend providerBackend;
 
   public SimpleDBPolicyEngine(String serverName, ProviderBackend providerBackend) {
@@ -52,6 +54,7 @@ public class SimpleDBPolicyEngine implements PolicyEngine {
 
   /**
    * {@inheritDoc}
+   * 在ResourceAuthorizationProvider的构造函数中被调用
    */
   @Override
   public PrivilegeFactory getPrivilegeFactory() {

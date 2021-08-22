@@ -27,6 +27,7 @@ import org.apache.sentry.core.model.db.DBModelAction;
 import org.apache.sentry.core.model.db.DBModelAuthorizable.AuthorizableType;
 
 public class HiveAuthzPrivilegesMap {
+  // Map记录了每种类型的语句对应所需的权限
   private static final Map <HiveOperation, HiveAuthzPrivileges> hiveAuthzStmtPrivMap =
     new HashMap<HiveOperation, HiveAuthzPrivileges>();
   static {
@@ -36,6 +37,7 @@ public class HiveAuthzPrivilegesMap {
         setOperationType(HiveOperationType.DDL).
         build();
 
+    // CREATE DATABASE 对应的权限，注意scope是SERVER
     HiveAuthzPrivileges createServerPrivilege = new HiveAuthzPrivileges.AuthzPrivilegeBuilder().
         addInputObjectPriviledge(AuthorizableType.Server, EnumSet.of(DBModelAction.CREATE)).
         setOperationScope(HiveOperationScope.SERVER).
@@ -97,6 +99,7 @@ public class HiveAuthzPrivilegesMap {
         setOperationType(HiveOperationType.DDL).
         build();
 
+    // 注意 ALTER TABLE RENAME 还需要DB的CREATE权限，scope也是DATABASE
     HiveAuthzPrivileges alterTableRenamePrivilege = new HiveAuthzPrivileges.AuthzPrivilegeBuilder().
         addInputObjectPriviledge(AuthorizableType.Table, EnumSet.of(DBModelAction.ALTER)).
         addInputObjectPriviledge(AuthorizableType.Db, EnumSet.of(DBModelAction.CREATE)).
@@ -133,6 +136,7 @@ public class HiveAuthzPrivilegesMap {
         setOperationType(HiveOperationType.DATA_UNLOAD).
         build();
 
+    // 对应一些SHOW语句
     HiveAuthzPrivileges tableMetaDataPrivilege = new HiveAuthzPrivileges.AuthzPrivilegeBuilder().
         addInputObjectPriviledge(AuthorizableType.Table, EnumSet.of(DBModelAction.SELECT, DBModelAction.INSERT)).
         setOperationScope(HiveOperationScope.TABLE).
@@ -154,6 +158,7 @@ public class HiveAuthzPrivilegesMap {
     setOperationType(HiveOperationType.DDL).
     build();
 
+    // DESC DATABASE 语句
     HiveAuthzPrivileges dbMetaDataPrivilege = new HiveAuthzPrivileges.AuthzPrivilegeBuilder().
       addInputObjectPriviledge(AuthorizableType.Db, EnumSet.of(DBModelAction.SELECT, DBModelAction.INSERT)).
       setOperationScope(HiveOperationScope.DATABASE).
@@ -287,6 +292,7 @@ public class HiveAuthzPrivilegesMap {
         setOperationScope(HiveOperationScope.DATABASE).
         setOperationType(HiveOperationType.DDL).
         build());
+    // SELECT语句需要的权限
     hiveAuthzStmtPrivMap.put(HiveOperation.QUERY, tableQueryPrivilege);
     hiveAuthzStmtPrivMap.put(HiveOperation.DESCDATABASE, dbMetaDataPrivilege);
     hiveAuthzStmtPrivMap.put(HiveOperation.DESCTABLE, tableMetaDataPrivilege);

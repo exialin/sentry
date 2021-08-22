@@ -16,6 +16,7 @@
  */
 package org.apache.sentry.core.common;
 
+// 被DBModelAuthorizable等接口继承
 public interface Authorizable {
   public String getName();
 

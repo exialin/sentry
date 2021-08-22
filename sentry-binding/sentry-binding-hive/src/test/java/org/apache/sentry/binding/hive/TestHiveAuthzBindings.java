@@ -82,7 +82,7 @@ public class TestHiveAuthzBindings {
 
   // Entities
   private List<List<DBModelAuthorizable>> inputTabHierarcyList = new ArrayList<List<DBModelAuthorizable>>();
-  private List<List<DBModelAuthorizable>> outputTabHierarcyList = new ArrayList<List<DBModelAuthorizable>>();
+  private List<List<DBModelAuthorizable>> outputTabHierarcyList = new ArrayList<List<DBModelAuthorizable>>()SentryService;
   private HiveConf hiveConf = new HiveConf();
   private HiveAuthzConf authzConf = new HiveAuthzConf(Resources.getResource("sentry-deprecated-site.xml"));
 
@@ -102,7 +102,7 @@ public class TestHiveAuthzBindings {
 
   // auth bindings handler
   private HiveAuthzBinding testAuth = null;
-  private File baseDir;
+    SentryServiceprivate File baseDir;
 
   @Before
   public void setUp() throws Exception {

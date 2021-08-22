@@ -21,6 +21,7 @@ import org.apache.sentry.core.model.db.Database;
 import org.apache.sentry.policy.common.PrivilegeValidatorContext;
 import org.apache.shiro.config.ConfigurationException;
 
+// 在SimpleDBPolicyEngine中被使用
 public class DatabaseMustMatch extends AbstractDBPrivilegeValidator {
 
   @Override
@@ -33,6 +34,7 @@ public class DatabaseMustMatch extends AbstractDBPrivilegeValidator {
     if(database != null) {
       Iterable<DBModelAuthorizable> authorizables = parsePrivilege(privilege);
       for(DBModelAuthorizable authorizable : authorizables) {
+        // 如果数据库的名字不同，则抛出异常
         if(authorizable instanceof Database &&
             !database.equalsIgnoreCase(authorizable.getName())) {
           String msg = "Privilege " + privilege + " references db " +

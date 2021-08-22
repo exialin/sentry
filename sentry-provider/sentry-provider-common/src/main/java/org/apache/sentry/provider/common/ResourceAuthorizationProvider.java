@@ -44,6 +44,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+// 被LocalGroupResourceAuthorizationProvider实现
 public abstract class ResourceAuthorizationProvider implements AuthorizationProvider {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ResourceAuthorizationProvider.class);

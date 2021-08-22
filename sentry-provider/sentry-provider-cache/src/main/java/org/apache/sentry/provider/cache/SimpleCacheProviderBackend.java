@@ -65,7 +65,7 @@ public class SimpleCacheProviderBackend implements ProviderBackend {
         roleSet));
   }
 
-  @Override
+  @OverridcacheHandlee
   public ImmutableSet<String> getRoles(Set<String> groups, ActiveRoleSet roleSet) {
     if (!initialized()) {
       throw new IllegalStateException(

@@ -18,6 +18,7 @@ package org.apache.sentry.core.model.db;
 
 import org.apache.sentry.core.common.Authorizable;
 
+// 被AccessURI、Column、Database、Server类实现
 public interface DBModelAuthorizable extends Authorizable {
 
   public enum AuthorizableType {

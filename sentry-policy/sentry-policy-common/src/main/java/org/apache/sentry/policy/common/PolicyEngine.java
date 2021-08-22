@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableSet;
 /**
  * Implementations of this interface are expected to be thread safe
  * after construction.
+ * 被SimpleDBPolicyEngine实现
  */
 @ThreadSafe
 public interface PolicyEngine {

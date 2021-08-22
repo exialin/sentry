@@ -28,14 +28,18 @@ import org.apache.shiro.config.ConfigurationException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
+// 被DatabaseMustMatch、DatabaseRequiredInPrivilege、ServerNameMustMatch、ServersAllIsInvalid继承，
+// 这四个类还需要重写validate方法
 public abstract class AbstractDBPrivilegeValidator implements PrivilegeValidator {
 
   @VisibleForTesting
   public static Iterable<DBModelAuthorizable> parsePrivilege(String string) {
     List<DBModelAuthorizable> result = Lists.newArrayList();
+    // 按'->'字符切分
     for(String section : AUTHORIZABLE_SPLITTER.split(string)) {
       // XXX this ugly hack is because action is not an authorizeable
       if(!section.toLowerCase().startsWith(PRIVILEGE_PREFIX)) {
+        // 排除掉"action="开头的字符串
         DBModelAuthorizable authorizable = DBModelAuthorizables.from(section);
         if(authorizable == null) {
           String msg = "No authorizable found for " + section;
